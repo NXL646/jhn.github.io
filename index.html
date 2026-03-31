@@ -1,1 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>治愈宠物 - 免费试玩30天</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Microsoft Yahei,sans-serif}
+body{background:#f6fbff;color:#333}
+.page{max-width:1000px;margin:0 auto;padding:20px}
+.hidden{display:none}
 
+.vip-bar{background:linear-gradient(90deg,#4e7ffc,#724efc);color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:12px;text-align:center;font-weight:bold}
+.vip-btn{background:#1677ff;color:#fff;padding:6px 12px;border-radius:8px;margin-left:10px;border:none;cursor:pointer}
+.ad-slot{background:#f0f0f0;padding:12px;border-radius:10px;text-align:center;margin:10px 0;color:#666}
+
+.login-box,.register-box{background:#fff;padding:30px;border-radius:16px;box-shadow:0 0 12px rgba(0,0,0,.1);margin:40px auto;width:90%;max-width:420px}
+.login-box h2,.register-box h2{text-align:center;margin-bottom:20px;color:#4e7ffc}
+input{width:100%;padding:12px 15px;margin:8px 0;border:1px solid #ddd;border-radius:10px;outline:none}
+button{padding:12px 20px;background:#4e7ffc;color:#fff;border:none;border-radius:10px;cursor:pointer;width:100%;margin-top:10px;font-size:15px}
+button:hover{background:#3c6edf}
+.to-btn{background:none;color:#4e7ffc;padding:0;margin-top:15px}
+
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.user-info{color:#4e7ffc;font-weight:bold}
+
+.status-bar{display:flex;gap:10px;margin-bottom:15px;font-size:14px;flex-wrap:wrap}
+.status-bar span{background:#fff;padding:6px 12px;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.08)}
+
+.chat-box{background:#fff;padding:16px;border-radius:12px;margin-bottom:16px}
+.chat-box h3{margin-bottom:10px;color:#4e7ffc}
+.chat-input{display:flex;gap:10px}
+#sayInput{flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;outline:none}
+.chat-input button{width:auto;padding:0 20px}
+.chat-bubble{background:#e6f7ff;padding:10px 14px;border-radius:12px;margin-top:10px;display:inline-block;max-width:85%;line-height:1.5}
+.ai-limit{color:#ff4d4f;font-size:12px;margin-top:6px}
+
+.ai-gen{background:#fff;padding:20px;border-radius:12px;margin-bottom:20px}
+.upload-box{margin:10px 0;text-align:center}
+.upload-box input{display:none}
+.upload-box label{padding:10px 20px;background:#36c96f;color:#fff;border-radius:10px;cursor:pointer}
+.pet-show{display:flex;justify-content:center;margin-top:15px}
+.pet-img-box{width:160px;height:160px;border-radius:12px;overflow:hidden;background:#eee}
+.pet-img-box img{width:100%;height:100%;object-fit:cover}
+
+.plaza{width:100%;height:440px;background:linear-gradient(to bottom,#e6f7ff 80%,#d1f7e3);border-radius:16px;position:relative;overflow:hidden;margin-bottom:20px}
+.pet{position:absolute;background-size:cover;background-position:center;border-radius:50%;box-shadow:0 0 8px rgba(0,0,0,.2);transition:all 0.3s ease;cursor:pointer}
+.food{width:26px;height:26px;background:#ff9d43;border-radius:50%;position:absolute;box-shadow:0 0 8px #ff9d43}
+
+.action-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.action-bar button{flex:1;padding:10px 8px;font-size:14px}
+
+.post-box{background:#fff;padding:20px;border-radius:12px}
+#content{width:100%;height:80px;padding:10px;border:1px solid #ddd;border-radius:10px;resize:none}
+.post-list{margin-top:15px;max-height:260px;overflow-y:auto}
+.post-item{padding:12px;border-bottom:1px solid #f0f0f0}
+.post-user{font-weight:bold;color:#4e7ffc}
+.post-time{font-size:12px;color:#999;margin-left:8px}
+.post-text{margin-top:6px}
+
+/* 支付宝收款码弹窗样式 */
+.pay-modal{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.6);display:flex;
+  justify-content:center;align-items:center;z-index:9999;
+}
+.pay-box{
+  background:#fff;padding:24px;border-radius:16px;
+  text-align:center;max-width:320px;width:90%;
+}
+.pay-box h3{color:#1677ff;margin-bottom:12px}
+.pay-box img{
+  width:220px;height:220px;object-fit:contain;
+  border:1px solid #eee;border-radius:8px;
+  margin:10px 0;
+}
+.pay-box p{font-size:14px;color:#666;margin:8px 0}
+.pay-box button{
+  background:#1677ff;color:#fff;padding:10px 20px;
+  border:none;border-radius:8px;cursor:pointer;
+  margin-top:12px;
+}
+</style>
+</head>
+<body>
+
+<div class="vip-bar" id="vipBanner">
+  🐾 免费试玩30天 · 剩余 <b id="trialLeft">30</b> 天 ·
+  <button class="vip-btn" onclick="showPayModal()">开通正式版</button>
+</div>
+
+<div class="ad-slot hidden" id="adSlot">
+  [ 广告位 · 支持运营 ]
+</div>
+
+<!-- 支付宝收款码弹窗 -->
+<div id="payModal" class="pay-modal hidden">
+  <div class="pay-box">
+    <h3>开通正式版</h3>
+    <p>💰 终身会员：29.9元</p>
+    <img id="alipayQR" src="https://via.placeholder.com/220" alt="支付宝收款码">
+    <p>支付宝扫码支付</p>
+    <button onclick="closePayModal()">关闭</button>
+  </div>
+</div>
+
+<div id="loginPage" class="page">
+  <div class="login-box">
+    <h2>登录</h2>
+    <input id="loginUser" placeholder="用户名" autocomplete="off">
+    <input id="loginPwd" type="password" placeholder="密码" autocomplete="new-password">
+    <button onclick="login()">登录</button>
+    <button class="to-btn" onclick="goRegister()">去注册</button>
+  </div>
+</div>
+
+<div id="registerPage" class="page hidden">
+  <div class="register-box">
+    <h2>注册</h2>
+    <input id="regUser" placeholder="用户名" autocomplete="off">
+    <input id="regPwd" type="password" placeholder="密码" autocomplete="new-password">
+    <button onclick="register()">注册</button>
+    <button class="to-btn" onclick="goLogin()">返回登录</button>
+  </div>
+</div>
+
+<div id="mainPage" class="page hidden">
+  <div class="header">
+    <h2>治愈宠物 · 试运营版</h2>
+    <div class="user-info" id="showUser"></div>
+  </div>
+
+  <div class="status-bar">
+    <span>等级: <b id="lv">1</b></span>
+    <span>饥饿: <b id="hunger">100</b></span>
+    <span>心情: <b id="mood">100</b></span>
+    <span>经验: <b id="exp">0</b>/100</span>
+    <span>AI次数: <b id="aiCount">无限</b></span>
+  </div>
+
+  <div class="chat-box">
+    <h3>💬 和宠物聊天</h3>
+    <div class="chat-input">
+      <input id="sayInput" placeholder="输入消息..." autocomplete="off">
+      <button onclick="sendAI()">发送</button>
+    </div>
+    <div id="aiLimitTip" class="ai-limit hidden"></div>
+    <div id="chatBubble" class="chat-bubble hidden"></div>
+  </div>
+
+  <div class="ai-gen">
+    <h3>🖼️ 上传宠物照片</h3>
+    <div class="upload-box">
+      <input type="file" id="imgUpload" accept="image/*" onchange="loadMyImage(event)">
+      <label for="imgUpload">选择图片</label>
+    </div>
+    <div class="pet-show">
+      <div class="pet-img-box"><img id="aiResult"></div>
+    </div>
+    <button onclick="usePet()" style="margin-top:12px">使用这张图片</button>
+  </div>
+
+  <div class="action-bar">
+    <button onclick="feedPet()">🍖 喂食</button>
+    <button onclick="playPet()">🎾 玩耍</button>
+    <button onclick="sleepPet()">😴 睡觉</button>
+    <button onclick="normalPet()">▶️ 散步</button>
+  </div>
+
+  <div class="plaza" id="plaza"></div>
+
+  <div class="post-box">
+    <h3>💌 心情日记</h3>
+    <textarea id="content" placeholder="写下你的心情..." autocomplete="off"></textarea>
+    <button onclick="postMsg()">发布</button>
+    <div class="post-list" id="postList"></div>
+  </div>
+</div>
+
+<script>
+function sha256(s){return btoa(s)}
+
+function goRegister(){loginPage.classList.add("hidden");registerPage.classList.remove("hidden")}
+function goLogin(){registerPage.classList.add("hidden");loginPage.classList.remove("hidden")}
+function showMain(){
+  [loginPage,registerPage].forEach(p=>p.classList.add("hidden"))
+  mainPage.classList.remove("hidden")
+}
+
+// 收款码弹窗控制
+function showPayModal(){
+  payModal.classList.remove("hidden")
+}
+function closePayModal(){
+  payModal.classList.add("hidden")
+}
+
+let userNow = ""
+let currentPetImg = ""
+let petEl = null
+let roamTimer = null
+let hungryTimer = null
+let isSleeping = false
+let isVip = false
+
+let aiToday = {
+  count: 0,
+  date: new Date().toDateString()
+}
+
+let data = {
+  lv:1, hunger:100, mood:100, exp:0, maxExp:100, size:70
+}
+
+let trial = {
+  start: null,
+  days: 30
+}
+
+function refreshAICount(){
+  aiCount.innerText = "无限"
+  aiLimitTip.classList.add("hidden")
+}
+
+function loadData(){
+  let d = localStorage.getItem("pet_data_"+sha256(userNow))
+  if(d) data = JSON.parse(d)
+  let ai = localStorage.getItem("ai_count_"+sha256(userNow))
+  if(ai) aiToday = JSON.parse(ai)
+
+  let t = localStorage.getItem("trial_"+sha256(userNow))
+  if(t){
+    trial = JSON.parse(t)
+  } else {
+    trial.start = new Date().toISOString()
+    saveTrial()
+  }
+
+  checkTrial()
+  refreshUI()
+  refreshAICount()
+}
+
+function saveData(){
+  localStorage.setItem("pet_data_"+sha256(userNow), JSON.stringify(data))
+  localStorage.setItem("ai_count_"+sha256(userNow), JSON.stringify(aiToday))
+}
+
+function saveTrial(){
+  localStorage.setItem("trial_"+sha256(userNow), JSON.stringify(trial))
+}
+
+function checkTrial(){
+  let now = new Date()
+  let start = new Date(trial.start)
+  let pass = Math.floor((now - start) / (1000*60*60*24))
+  let left = trial.days - pass
+  if(left < 0) left = 0
+  trialLeft.innerText = left
+
+  if(left <= 0){
+    alert("免费试玩已到期，开通正式版继续使用")
+    showPayModal()
+  }
+}
+
+function refreshUI(){
+  lv.innerText = data.lv
+  hunger.innerText = Math.round(data.hunger)
+  mood.innerText = Math.round(data.mood)
+  exp.innerText = data.exp+"/"+data.maxExp
+  if(petEl) petEl.style.width = petEl.style.height = data.size + "px"
+}
+
+function register(){
+  const u=regUser.value,p=sha256(regPwd.value)
+  if(!u||!p)return alert("请完整填写")
+  localStorage.setItem("user_"+sha256(u), p)
+  alert("注册成功\n免费试玩30天已开启")
+  goLogin()
+}
+
+function login(){
+  const u=loginUser.value,p=sha256(loginPwd.value)
+  if(localStorage.getItem("user_"+sha256(u))!==p)return alert("账号或密码错误")
+  userNow=u
+  showUser.innerText="用户："+u
+  loadData()
+  showMain()
+}
+
+function loadMyImage(e){
+  const f=e.target.files[0]
+  if(!f)return
+  const r=new FileReader()
+  r.onload=ev=>{currentPetImg=ev.target.result;aiResult.src=currentPetImg}
+  r.readAsDataURL(f)
+}
+
+function usePet(){
+  if(!currentPetImg)return alert("请先上传图片")
+  plaza.innerHTML=""
+  petEl=document.createElement("div")
+  petEl.className="pet"
+  petEl.style.backgroundImage=`url(${currentPetImg})`
+  petEl.style.left="120px"
+  petEl.style.bottom="100px"
+  petEl.style.width=petEl.style.height=data.size+"px"
+  plaza.appendChild(petEl)
+  petEl.onclick=()=>{addMood(5);addExp(2);showChat("❤️ 谢谢主人摸摸")}
+  startHunger();normalPet();refreshUI()
+}
+
+function startHunger(){
+  clearInterval(hungryTimer)
+  hungryTimer=setInterval(()=>{
+    if(isSleeping)return
+    data.hunger-=1
+    if(data.hunger<25)showChat("肚子饿了…")
+    if(data.hunger<0)data.hunger=0
+    refreshUI();saveData()
+  },8000)
+}
+
+function normalPet(){
+  isSleeping=false
+  clearInterval(roamTimer)
+  roamTimer=setInterval(()=>{
+    if(isSleeping||!petEl)return
+    petEl.style.left=Math.random()*880+"px"
+    petEl.style.bottom=Math.random()*280+60+"px"
+  },2200)
+}
+function sleepPet(){
+  isSleeping=true
+  clearInterval(roamTimer)
+  petEl.style.transform="scale(0.85)"
+  addMood(12);;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;showChat("😴 我睡觉啦")
+}
+function playPet(){
+  isSleeping==false
+  addMood(18);;addExp(12);;showChat("🎾 好开心！")
+  let t==0
+  const i==setInterval(()=>=>{
+    petEl................style................bottom================(parseInt(petEl................style................bottom)||||||||||||||||||||||||||||||||100)++++++++++++++++(t%%%%%%%%%%%%%%%%2????????????????28:-:-:-:-:-:-:-:-:-:-:-:-:-:-:-:-28)++++++++++++++++"px"
+    t++;++;if(t>>10)clearInterval(i)
+  },,90)
+}
+function feedPet(){
+  if(data..hunger>=>=100)return showChat("我吃饱啦")
+  isSleeping==false
+  addHunger(35);;addExp(12);;showChat("🥰 谢谢主人！")
+  const f================document................createElement("div");;;;;;;;;;;;;;;;f................className================"food"
+  f................style................left================(parseInt(petEl................style................left)||||||||||||||||||||||||||||||||120)++++++++++++++++25++++++++++++++++"px"
+  f................style................bottom================(parseInt(petEl................style................bottom)||||||||||||||||||||||||||||||||100)----------------30++++++++++++++++"px"
+  plaza..appendChild(f)
+  setTimeout(()=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>{petEl................style................left================f................style................left;;;;;;;;;;;;;;;;petEl................style................bottom================f................style................bottom;;;;;;;;;;;;;;;;setTimeout(()=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>f................remove(),,,,,,,,,,,,,,,,600)},,,,,,,,,,,,,,,,400)
+}
+
+function addHunger(v){data................hunger================Math................min(100,,,,,,,,,,,,,,,,data................hunger++v++++v++v++++v++++v);;;;;;;;;;;;;;;;refreshUI();;;;;;;;;;;;;;;;saveData()}
+function addMood(v){data................mood================Math................min(100,,,,,,,,,,,,,,,,data................mood++v++++v++v++++v++++v);;;;;;;;;;;;;;;;refreshUI();;;;;;;;;;;;;;;;saveData()}
+function addExp(v){
+  data..exp+=+=v
+  while(data..exp>=>=data..maxExp){
+    data................exp-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=data................maxExp;;;;;;;;;;;;;;;;data................lv++;++;++;++;++;++;++;++;++;++;++;++;++;++;++;++;data................maxExp================Math................round(data................maxExp****************1.4);;;;;;;;;;;;;;;;data................size+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=8
+    data................hunger================100;;;;;;;;;;;;;;;;data................mood================100
+    showChat(`🎉 我升到 ${data..lv} 级啦！`)
+  }
+  refreshUI();;saveData()
+}
+
+function showChat(t){
+  const b==document..getElementById("chatBubble")
+  b................innerText================t;;;;;;;;;;;;;;;;b................classList................remove("hidden")
+  setTimeout(()=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>b................classList................add("hidden"),,,,,,,,,,,,,,,,6000)
+}
+
+async function sendAI(){
+  if(!!petEl)return showChat("先召唤我吧～")
+  const m==sayInput..value..trim()
+  if(!!m)return
+  sayInput..value==""
+  addMood(4);;addExp(3);;showChat("思考中…")
+  try{
+    const r================await fetch("https://api.lovelai.cc/v1/chat/completions",,,,,,,,,,,,,,,,{
+      method::::::::::::::::"POST",,,,,,,,,,,,,,,,headers::::::::::::::::{"Content-Type"::::::::::::::::"application/json"},,,,,,,,,,,,,,,,
+      body::::JSON....stringify({
+        model::"gpt-3.5-turbo",,
+        messages::::::::::::::::::::::::::::::::[{"role"::::::::::::::::::::::::::::::::"system",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"content"::::::::::::::::::::::::::::::::"你是温柔治愈的虚拟宠物，简短暖心陪伴"},,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,{"role"::::::::::::::::::::::::::::::::"user",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"content"::::::::::::::::::::::::::::::::m}]
+      })
+    })
+    const j==await r..json()
+    showChat(j................choices[0]................message................content)
+  }catch(e){
+    showChat("我一直陪着你❤️")
+  }
+}
+
+function postMsg(){
+  if(!!userNow)return
+  const c==content..value..trim()
+  if(!!c)return
+  const d==new Date()..toLocaleString()
+  postList................insertAdjacentHTML("afterbegin",,,,,,,,,,,,,,,,`
+  <div class="post-item">
+    <div><span class="post-user">${userNow}</span><span class="post-time">${d}</span></div>
+    <div class="post-text">${c}</div>
+  </div>`)
+  content..value==""
+}
+</script>
+</body>
+</html>
