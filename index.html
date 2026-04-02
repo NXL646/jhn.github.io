@@ -191,6 +191,10 @@ function showMain(){
 
 // 钻石弹窗
 function showDiamondModal(){
+  if(!userNow){
+    alert("请先登录！");
+    return;
+  }
   diamondModal.classList.remove("hidden")
   nowDia.innerText = data.diamond
   payImg.src = "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/2c8f3e9fb1704c2e8b8ecaa45f798ab8.png"
@@ -208,8 +212,13 @@ function confirmPay(){
   data.diamond += buyAmount
   saveData()
   refreshUI()
-  alert("成功到账 "+buyAmount+" 钻石！")
+  alert("成功到账 "+buyAmount+" 钻石！已自动进入应用")
   closeDiamondModal()
+  
+  // 关键修复：付款后强制进入主界面
+  if(userNow){
+    showMain()
+  }
 }
 
 // 刷新界面
@@ -223,7 +232,7 @@ function refreshUI(){
   if(petEl) petEl.style.width = petEl.style.height = data.size+"px"
 }
 
-// 试玩检查
+// 试玩检查（不拦截使用，仅提示）
 function checkTrial(){
   let now = new Date()
   let start = new Date(trial.start)
@@ -231,9 +240,6 @@ function checkTrial(){
   let left = trial.days - pass
   if(left < 0) left = 0
   trialLeft.innerText = left
-  if(left <= 0){
-    alert("免费试玩已到期，可购买钻石继续使用")
-  }
 }
 
 // 本地存储
