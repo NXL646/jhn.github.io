@@ -10,7 +10,6 @@ body{background:#f6fbff;color:#333}
 .page{max-width:1000px;margin:0 auto;padding:20px}
 .hidden{display:none}
 .vip-bar{background:linear-gradient(90deg,#1677ff,#165DFF);color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:12px;text-align:center;font-weight:bold}
-.vip-btn{background:#FF9D43;color:#fff;padding:6px 12px;border-radius:8px;margin-left:10px;border:none;cursor:pointer}
 .ad-slot{background:#f0f0f0;padding:12px;border-radius:10px;text-align:center;margin:10px 0;color:#666}
 .login-box,.register-box{background:#fff;padding:30px;border-radius:16px;box-shadow:0 0 12px rgba(0,0,0,.1);margin:40px auto;width:90%;max-width:420px}
 .login-box h2,.register-box h2{text-align:center;margin-bottom:20px;color:#1677ff}
@@ -28,7 +27,6 @@ button:hover{background:#0E60D4}
 #sayInput{flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;outline:none}
 .chat-input button{width:auto;padding:0 20px}
 .chat-bubble{background:#e6f7ff;padding:10px 14px;border-radius:12px;margin-top:10px;display:inline-block;max-width:85%;line-height:1.5}
-.ai-limit{color:#ff4d4f;font-size:12px;margin-top:6px}
 .ai-gen{background:#fff;padding:20px;border-radius:12px;margin-bottom:20px}
 .upload-box{margin:10px 0;text-align:center}
 .upload-box input{display:none}
@@ -48,41 +46,16 @@ button:hover{background:#0E60D4}
 .post-user{font-weight:bold;color:#1677ff}
 .post-time{font-size:12px;color:#999;margin-left:8px}
 .post-text{margin-top:6px}
-
-.pay-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;justify-content:center;align-items:center;z-index:9999}
-.pay-box{background:#fff;padding:24px;border-radius:16px;text-align:center;max-width:340px;width:90%}
-.pay-box h3{color:#1677ff;margin-bottom:12px}
-.pay-box img{width:220px;height:220px;object-fit:contain;border:1px solid #eee;border-radius:8px;margin:10px 0}
-.pay-box p{font-size:14px;color:#666;margin:8px 0}
-.pay-item{padding:8px 12px;background:#f0f7ff;border-radius:8px;margin:6px 0;cursor:pointer;border:1px solid #cce5ff}
-.pay-item:hover{background:#e6f7ff}
-.pay-box button{background:#1677ff;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;margin-top:12px}
 </style>
 </head>
 <body>
 
 <div class="vip-bar" id="vipBanner">
-  🐾 免费试玩30天 · 剩余 <b id="trialLeft">30</b> 天 ·
-  <button class="vip-btn" onclick="showDiamondModal()">购买钻石</button>
+  🐾 永久免费使用 · 剩余免费试玩 <b id="trialLeft">30</b> 天
 </div>
 
-<div class="ad-slot hidden" id="adSlot">[广告位]</div>
-
-<!-- 钻石购买弹窗 -->
-<div id="diamondModal" class="pay-modal hidden">
-  <div class="pay-box">
-    <h3>购买钻石</h3>
-    <p>当前钻石：<b id="nowDia">0</b></p>
-    <p>💎 1钻石 = 0.1元</p>
-    <div class="pay-item" onclick="selectBuy(10)">10钻石 = 1元</div>
-    <div class="pay-item" onclick="selectBuy(50)">50钻石 = 5元</div>
-    <div class="pay-item" onclick="selectBuy(100)">100钻石 = 10元</div>
-    <div class="pay-item" onclick="selectBuy(500)">500钻石 = 50元</div>
-    <img id="payImg" alt="支付宝收款码">
-    <p>支付宝扫码支付</p>
-    <button onclick="confirmPay()">已付款，确认到账</button>
-    <button onclick="closeDiamondModal()">关闭</button>
-  </div>
+<div class="ad-slot" id="adSlot">
+  📢 广告位 · 治愈宠物 永久免费
 </div>
 
 <div id="loginPage" class="page">
@@ -116,8 +89,6 @@ button:hover{background:#0E60D4}
     <span>饥饿: <b id="hunger">100</b></span>
     <span>心情: <b id="mood">100</b></span>
     <span>经验: <b id="exp">0</b>/100</span>
-    <span>今日免费: <b id="freeToday">5</b>/5</span>
-    <span>钻石: <b id="diamond">0</b></span>
   </div>
 
   <div class="chat-box">
@@ -126,7 +97,6 @@ button:hover{background:#0E60D4}
       <input id="sayInput" placeholder="输入消息..." autocomplete="off">
       <button onclick="sendAI()">发送</button>
     </div>
-    <div id="aiLimitTip" class="ai-limit hidden"></div>
     <div id="chatBubble" class="chat-bubble hidden"></div>
   </div>
 
@@ -168,18 +138,12 @@ let petEl = null
 let roamTimer = null
 let hungryTimer = null
 let isSleeping = false
-let buyAmount = 0
 
 let data = {
-  lv:1, hunger:100, mood:100, exp:0, maxExp:100, size:70,
-  diamond: 0
+  lv:1, hunger:100, mood:100, exp:0, maxExp:100, size:70
 }
 
 let trial = {start:null, days:30}
-let chatToday = {
-  date: new Date().toDateString(),
-  free: 5
-}
 
 // 页面切换
 function goRegister(){loginPage.classList.add("hidden");registerPage.classList.remove("hidden")}
@@ -189,50 +153,16 @@ function showMain(){
   mainPage.classList.remove("hidden")
 }
 
-// 钻石弹窗
-function showDiamondModal(){
-  if(!userNow){
-    alert("请先登录！");
-    return;
-  }
-  diamondModal.classList.remove("hidden")
-  nowDia.innerText = data.diamond
-  payImg.src = "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/2c8f3e9fb1704c2e8b8ecaa45f798ab8.png"
-}
-function closeDiamondModal(){
-  diamondModal.classList.add("hidden")
-  buyAmount = 0
-}
-function selectBuy(num){
-  buyAmount = num
-  alert("已选择："+num+"钻石，请扫码支付后点击确认到账")
-}
-function confirmPay(){
-  if(buyAmount <= 0) return alert("请先选择购买数量")
-  data.diamond += buyAmount
-  saveData()
-  refreshUI()
-  alert("成功到账 "+buyAmount+" 钻石！已自动进入应用")
-  closeDiamondModal()
-  
-  // 关键修复：付款后强制进入主界面
-  if(userNow){
-    showMain()
-  }
-}
-
 // 刷新界面
 function refreshUI(){
   lv.innerText = data.lv
   hunger.innerText = Math.round(data.hunger)
   mood.innerText = Math.round(data.mood)
   exp.innerText = data.exp+"/"+data.maxExp
-  freeToday.innerText = chatToday.free
-  diamond.innerText = data.diamond
   if(petEl) petEl.style.width = petEl.style.height = data.size+"px"
 }
 
-// 试玩检查（不拦截使用，仅提示）
+// 试玩检查
 function checkTrial(){
   let now = new Date()
   let start = new Date(trial.start)
@@ -253,17 +183,6 @@ function loadData(){
     trial.start=new Date().toISOString()
     saveTrial()
   }
-  let ct=localStorage.getItem("chatToday_"+sha256(userNow))
-  if(ct){
-    chatToday=JSON.parse(ct)
-  }else{
-    chatToday={date:new Date().toDateString(), free:5}
-    saveChatToday()
-  }
-  if(chatToday.date!=new Date().toDateString()){
-    chatToday={date:new Date().toDateString(), free:5}
-    saveChatToday()
-  }
   checkTrial()
   refreshUI()
 }
@@ -273,9 +192,6 @@ function saveData(){
 }
 function saveTrial(){
   localStorage.setItem("trial_"+sha256(userNow),JSON.stringify(trial))
-}
-function saveChatToday(){
-  localStorage.setItem("chatToday_"+sha256(userNow),JSON.stringify(chatToday))
 }
 
 // 注册登录
@@ -409,63 +325,15 @@ function showChat(t){
   setTimeout(()=>b.classList.add("hidden"),6000)
 }
 
-// AI聊天核心逻辑
+// AI聊天（永久免费）
 async function sendAI(){
   if(!petEl)return showChat("先召唤我吧～")
   const msg=sayInput.value.trim()
   if(!msg)return
   sayInput.value=""
 
-  // 判断是否在免费30天内
-  let now = new Date()
-  let start = new Date(trial.start)
-  let passDays = Math.floor((now-start)/(1000*60*60*24))
-  let inTrial = passDays < trial.days
-
-  aiLimitTip.classList.add("hidden")
-
-  // 免费期：随便发，不扣次数不扣钻石
-  if(inTrial){
-    addMood(4)
-    addExp(3)
-    showChat("思考中…")
-    try{
-      const r=await fetch("https://api.lovelai.cc/v1/chat/completions",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"gpt-3.5-turbo",
-          messages:[{"role":"system","content":"你是温柔治愈的虚拟宠物，简短暖心陪伴"},{"role":"user","content":msg}]
-        })
-      })
-      const j=await r.json()
-      showChat(j.choices[0].message.content)
-    }catch(e){
-      showChat("我一直陪着你❤️")
-    }
-    refreshUI()
-    return
-  }
-
-  // 免费期结束，走限制逻辑
-  if(chatToday.free > 0){
-    // 用免费次数
-    chatToday.free--
-    saveChatToday()
-  }else{
-    // 用钻石
-    if(data.diamond < 1){
-      aiLimitTip.textContent="今日免费次数已用完，请购买钻石"
-      aiLimitTip.classList.remove("hidden")
-      return
-    }
-    data.diamond -= 1
-    saveData()
-  }
-
   addMood(4)
   addExp(3)
-  refreshUI()
   showChat("思考中…")
 
   try{
@@ -482,6 +350,7 @@ async function sendAI(){
   }catch(e){
     showChat("我一直陪着你❤️")
   }
+  refreshUI()
 }
 
 // 心情日记
